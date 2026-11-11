@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Management | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="sales-management-page">
+
+        <header class="page-header">
+            <h1>Sales Management</h1>
+
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ url_for('admin_orders') }}">Manage Orders</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="sales-overview">
+            <h2>Sales Overview</h2>
+
+            <div class="sales-summary-cards">
+
+                <div class="sales-summary-card">
+                    <h3>Total Transactions</h3>
+                    <p>{{ total_transactions }}</p>
+                </div>
+
+                <div class="sales-summary-card">
+                    <h3>Total Recorded Sales</h3>
+                    <p>₱{{ "%.2f"|format(total_sales) }}</p>
+                </div>
+
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="sales-records-section">
+            <h2>Sales Records</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Order Type</th>
+                            <th>Fulfillment</th>
+                            <th>Total Amount</th>
+                            <th>Sale Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for sale in sales %}
+                            <tr>
+                                <td>{{ sale[0] }}</td>
+                                <td>#{{ sale[1] }}</td>
+                                <td>{{ sale[2] }}</td>
+                                <td>{{ sale[3]|replace('_', ' ')|title }}</td>
+                                <td>{{ sale[4]|title }}</td>
+                                <td>₱{{ "%.2f"|format(sale[5]) }}</td>
+                                <td>{{ sale[6] }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7">No sales records available yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Sales Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

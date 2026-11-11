@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="admin-orders-page">
+
+        <header class="page-header">
+            <h1>Manage Orders</h1>
+
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ url_for('create_order') }}">Create New Order</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-list-section">
+            <h2>Order List</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Order Type</th>
+                            <th>Fulfillment</th>
+                            <th>Total Amount</th>
+                            <th>Order Status</th>
+                            <th>Order Date</th>
+                            <th>Payment Method</th>
+                            <th>Payment Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td>{{ order[0] }}</td>
+                                <td>{{ order[1] }}</td>
+                                <td>{{ order[2]|replace('_', ' ')|title }}</td>
+                                <td>{{ order[3]|title }}</td>
+                                <td>₱{{ "%.2f"|format(order[4]) }}</td>
+
+                                <td>
+                                    <span class="status-badge {{ order[5] }}">
+                                        {{ order[5]|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+
+                                <td>{{ order[6] }}</td>
+                                <td>{{ order[7]|upper }}</td>
+                                <td>{{ order[8]|replace('_', ' ')|title }}</td>
+
+                                <td>
+                                    <a href="{{ url_for('order_details', order_id=order[0]) }}">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+
+                        {% else %}
+                            <tr>
+                                <td colspan="10">No orders recorded yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Order Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

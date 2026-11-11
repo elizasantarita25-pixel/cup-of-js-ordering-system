@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory History | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="inventory-history-page">
+
+        <header class="page-header">
+            <h1>Inventory Transaction History</h1>
+
+            <nav>
+                <a href="{{ url_for('manage_inventory') }}">Back to Inventory</a>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        <section class="inventory-history-section">
+            <h2>Recorded Transactions</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Transaction Type</th>
+                            <th>Quantity Changed</th>
+                            <th>Current Stock</th>
+                            <th>Remarks</th>
+                            <th>Date and Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction[0] }}</td>
+                            <td>{{ transaction[1] }}</td>
+                            <td>{{ transaction[2] }}</td>
+                            <td>{{ transaction[3] }}</td>
+                            <td>{{ transaction[4] }}</td>
+                            <td>{{ transaction[5] }}</td>
+                            <td>{{ transaction[6] or "No remarks" }}</td>
+                            <td>{{ transaction[7] }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8">No inventory transactions recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Inventory Transaction History</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

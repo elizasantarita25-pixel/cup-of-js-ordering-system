@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Deliveries | Cup of J's</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        #deliveryMap {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        select, button {
+            padding: 8px;
+            margin: 3px 0;
+        }
+
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Manage Deliveries</h1>
+
+    <p>Welcome, {{ session.full_name }}!</p>
+
+    <p>
+        <a href="{{ url_for('admin_dashboard') }}">
+            Back to Admin Dashboard
+        </a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
+    <hr>
+
+    <h2>Delivery Locations Map</h2>
+
+    <p>
+        The map displays the shop location and the available delivery areas.
+    </p>
+
+    <div id="deliveryMap"></div>
+
+    <hr>
+
+    <h2>Delivery Records</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Delivery ID</th>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Location</th>
+                <th>Delivery Address</th>
+                <th>Delivery Fee</th>
+                <th>Status</th>
+                <th>Date Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for delivery in deliveries %}
+            <tr>
+                <td>{{ delivery[0] }}</td>
+                <td>{{ delivery[1] }}</td>
+                <td>{{ delivery[2] }}</td>
+                <td>{{ delivery[3] }}</td>
+                <td>{{ delivery[4] }}</td>
+
+                <td>
+                    ₱{{ "%.2f"|format(delivery[5]|float) }}
+                </td>
+
+                <td>
+                    <strong>{{ delivery[6]|replace("_", " ")|title }}</strong>
+                </td>
+
+                <td>{{ delivery[7] }}</td>
+
+                <td>
+                    {% if delivery[6] not in ["delivered", "cancelled"] %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for(
+                            'update_delivery_status',
+                            delivery_id=delivery[0]
+                        ) }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <select name="delivery_status" required>
+
+                            <option
+                                value="pending"
+                                {% if delivery[6] == "pending" %}selected{% endif %}
+                            >
+                                Pending
+                            </option>
+
+                            <option
+                                value="preparing"
+                                {% if delivery[6] == "preparing" %}selected{% endif %}
+                            >
+                                Preparing
+                            </option>
+
+                            <option
+                                value="out_for_delivery"
+                                {% if delivery[6] == "out_for_delivery" %}selected{% endif %}
+                            >
+                                Out for Delivery
+                            </option>
+
+                            <option
+                                value="delivered"
+                                {% if delivery[6] == "delivered" %}selected{% endif %}
+                            >
+                                Delivered
+                            </option>
+
+                            <option
+                                value="cancelled"
+                                {% if delivery[6] == "cancelled" %}selected{% endif %}
+                            >
+                                Cancelled
+                            </option>
+
+                        </select>
+
+                        <button type="submit">
+                            Update Status
+                        </button>
+
+                    </form>
+
+                    {% else %}
+
+                        <strong>No further actions</strong>
+
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="9">No delivery records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Delivery locations data -->
+    <script id="delivery-locations-data" type="application/json">
+        {{ locations | tojson }}
+    </script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Shop coordinates (approximate)
+        const shopCoordinates = [14.2277, 121.3292];
+
+        // Approximate coordinates of delivery areas
+        const areaCoordinates = {
+            "banca-banca": [14.2028, 121.3456],
+            "nanhaya": [14.2284, 121.3321],
+            "san francisco": [14.2142, 121.3422],
+            "san felix": [14.2056, 121.3345],
+            "pagalangan": [14.2312, 121.3384],
+            "san roque": [14.2266, 121.3228],
+            "tubuan": [14.2296, 121.3486]
+        };
+
+        // Initialize map
+        const map = L.map("deliveryMap").setView(
+            shopCoordinates,
+            14
+        );
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution: "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+        // Shop marker
+        L.marker(shopCoordinates)
+            .addTo(map)
+            .bindPopup("<b>Cup of J's</b><br>Shop Location");
+
+        // Read delivery locations
+        const locationDataElement = document.getElementById(
+            "delivery-locations-data"
+        );
+
+        const deliveryLocations = JSON.parse(
+            locationDataElement.textContent
+        );
+
+        const mapMarkers = [shopCoordinates];
+
+        deliveryLocations.forEach(function(location) {
+
+            const locationName = location.location_name;
+            const deliveryFee = Number(location.delivery_fee);
+
+            const normalizedName = locationName
+                .toLowerCase()
+                .trim();
+
+            const coordinates = areaCoordinates[normalizedName];
+
+            if (!coordinates) {
+                console.warn(
+                    "No map coordinates found for:",
+                    locationName
+                );
+                return;
+            }
+
+            L.marker(coordinates)
+                .addTo(map)
+                .bindPopup(
+                    "<b>" + locationName + "</b><br>" +
+                    "Delivery Fee: ₱" +
+                    deliveryFee.toFixed(2)
+                );
+
+            mapMarkers.push(coordinates);
+        });
+
+        if (mapMarkers.length > 0) {
+            map.fitBounds(mapMarkers, {
+                padding: [30, 30]
+            });
+        }
+    </script>
+
+</body>
+</html>

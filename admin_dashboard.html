@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="admin-dashboard">
+
+        <header class="page-header">
+            <h1>Welcome to Cup of J's!</h1>
+            <h2>Admin Dashboard</h2>
+
+            <p>Welcome, {{ full_name }}!</p>
+            <p>Username: {{ username }}</p>
+            <p>Account Role: {{ role }}</p>
+        </header>
+
+        <hr>
+
+        <section class="business-overview">
+            <h3>Business Overview</h3>
+
+            <div class="dashboard-stats">
+
+                <article class="stat-card">
+                    <h4>Total Products</h4>
+                    <p>{{ total_products }}</p>
+                </article>
+
+                <article class="stat-card">
+                    <h4>Low-Stock Products</h4>
+                    <p>{{ low_stock_products }}</p>
+                </article>
+
+                <article class="stat-card">
+                    <h4>Pending Orders</h4>
+                    <p>{{ pending_orders }}</p>
+                </article>
+
+                <article class="stat-card">
+                    <h4>Total Recorded Sales</h4>
+                    <p>₱{{ "%.2f"|format(total_sales|float) }}</p>
+                </article>
+
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="recent-orders">
+            <h3>Recent Orders</h3>
+
+            {% if recent_orders %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Date</th>
+                                <th>Customer</th>
+                                <th>Total Amount</th>
+                                <th>Order Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td>{{ order[0] }}</td>
+                                    <td>{{ order[1] }}</td>
+                                    <td>{{ order[2] or "Walk-in Customer" }}</td>
+                                    <td>₱{{ "%.2f"|format(order[3]|float) }}</td>
+                                    <td>
+                                        <span class="status-badge {{ order[4]|lower|replace(' ', '_') }}">
+                                            {{ order[4] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <p class="empty-orders">No recent orders found.</p>
+
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <section class="admin-navigation">
+            <h3>Admin Navigation</h3>
+
+            <nav class="admin-nav">
+                <a href="/admin/dashboard">Dashboard</a>
+                <a href="/admin/categories">Manage Categories</a>
+                <a href="/admin/products">Manage Products</a>
+                <a href="/admin/variants">Manage Product Variants</a>
+                <a href="/admin/inventory">Manage Inventory</a>
+                <a href="/admin/inventory/history">Inventory History</a>
+                <a href="/admin/addons">Manage Add-ons</a>
+                <a href="/admin/orders">Manage Orders</a>
+                <a href="/admin/deliveries">Manage Deliveries</a>
+                <a href="/admin/delivery-locations">Manage Delivery Locations</a>
+                <a href="/admin/sales">Sales Management</a>
+                <a href="/admin/reports">Sales Reports</a>
+            </nav>
+        </section>
+
+        <hr>
+
+        <section class="admin-access">
+            <h3>Admin Access</h3>
+
+            <p>
+                You are logged in as the Cup of J's administrator.
+                Use the navigation links above to manage the business operations.
+            </p>
+        </section>
+
+        <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Log Out</button>
+        </form>
+
+        <footer>
+            <p>Cup of J's | Admin Dashboard</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

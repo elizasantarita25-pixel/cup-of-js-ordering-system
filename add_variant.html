@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product Variant | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="variant-form-page">
+
+        <header class="page-header">
+            <h1>Add Product Variant</h1>
+
+            <nav>
+                <a href="{{ url_for('manage_variants') }}">Back to Product Variants</a>
+            </nav>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="variant-form-section">
+            <h2>Variant Information</h2>
+
+            <form method="POST" action="{{ url_for('add_variant') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.product_id.label }}
+                    {{ form.product_id() }}
+
+                    {% for error in form.product_id.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.variant_name.label }}
+                    {{ form.variant_name(placeholder="Enter variant name") }}
+
+                    {% for error in form.variant_name.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.price.label }}
+                    {{ form.price() }}
+
+                    {% for error in form.price.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.low_stock_threshold.label }}
+                    {{ form.low_stock_threshold() }}
+
+                    {% for error in form.low_stock_threshold.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group checkbox-group">
+                    {{ form.is_available() }}
+                    {{ form.is_available.label }}
+                </div>
+
+                {{ form.submit() }}
+            </form>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Product Variant Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

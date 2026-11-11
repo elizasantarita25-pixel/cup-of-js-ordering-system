@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="cart-container">
+
+        <header class="page-header">
+            <h1>My Shopping Cart</h1>
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('customer_menu') }}">Back to Menu</a>
+                |
+                <a href="{{ url_for('customer_dashboard') }}">Dashboard</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if cart %}
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Unit Price</th>
+                            <th>Add-ons</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in cart %}
+                            <tr>
+                                <td>{{ item.product_name }}</td>
+
+                                <td>{{ item.variant_name }}</td>
+
+                                <td>
+                                    ₱{{ "%.2f"|format(item.unit_price|float) }}
+                                </td>
+
+                                <td>
+                                    {% if item.addons %}
+                                        <ul>
+                                            {% for addon in item.addons %}
+                                                <li>
+                                                    {{ addon.addon_name }}
+                                                    ({{ addon.quantity }}x)
+                                                    - ₱{{ "%.2f"|format(addon.unit_price|float) }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        None
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('customer_update_cart_quantity', item_index=loop.index0) }}"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <input
+                                            type="number"
+                                            name="quantity"
+                                            min="1"
+                                            value="{{ item.quantity }}"
+                                            required
+                                        >
+
+                                        <button type="submit">Update</button>
+                                    </form>
+                                </td>
+
+                                <td>
+                                    ₱{{ "%.2f"|format(item.subtotal|float) }}
+                                </td>
+
+                                <td>
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('customer_remove_cart_item', item_index=loop.index0) }}"
+                                        onsubmit="return confirm('Remove this product from your cart?');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <button type="submit">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <section class="cart-summary">
+
+                <h3>
+                    Total Amount:
+                    ₱{{ "%.2f"|format(total_amount|float) }}
+                </h3>
+
+                <p>
+                    Review your items before proceeding to checkout.
+                </p>
+
+                <a href="{{ url_for('customer_checkout') }}">
+                    Proceed to Checkout
+                </a>
+
+            </section>
+
+        {% else %}
+
+            <section class="empty-cart">
+                <h2>Your Cart is Empty</h2>
+
+                <p>Your cart is currently empty.</p>
+
+                <a href="{{ url_for('customer_menu') }}">
+                    Browse Our Menu
+                </a>
+            </section>
+
+        {% endif %}
+
+        <footer>
+            &copy; 2026 Cup of J's. All rights reserved.
+        </footer>
+
+    </main>
+
+</body>
+</html>

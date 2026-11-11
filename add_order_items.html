@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Products | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="add-order-items-page">
+
+        <header class="page-header">
+            <h1>Add Products to Order</h1>
+
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('create_order') }}">Back to Order Information</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-product-form">
+            <h2>Select Product</h2>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.variant_id.label }}
+                    {{ form.variant_id() }}
+
+                    {% for error in form.variant_id.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.quantity.label }}
+                    {{ form.quantity() }}
+
+                    {% for error in form.quantity.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit() }}
+            </form>
+        </section>
+
+        <hr>
+
+        <section class="order-cart-section">
+            <h2>Order Cart</h2>
+
+            {% if cart %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Variant</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Add-ons</th>
+                                <th>Item Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in cart %}
+                                {% set addon_total = namespace(value=0) %}
+
+                                {% for addon in item.addons %}
+                                    {% set addon_total.value = addon_total.value + addon.subtotal %}
+                                {% endfor %}
+
+                                <tr>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>{{ item.variant_name }}</td>
+
+                                    <td>
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('update_order_quantity', variant_id=item.variant_id) }}"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <input
+                                                type="number"
+                                                name="quantity"
+                                                value="{{ item.quantity }}"
+                                                min="1"
+                                                required
+                                            >
+
+                                            <button type="submit">Update</button>
+                                        </form>
+                                    </td>
+
+                                    <td>
+                                        ₱{{ "%.2f"|format(item.unit_price) }}
+                                    </td>
+
+                                    <td>
+                                        {% if item.addons %}
+                                            {% for addon in item.addons %}
+                                                {{ addon.addon_name }}
+                                                ({{ addon.quantity }} ×
+                                                ₱{{ "%.2f"|format(addon.unit_price) }})
+                                                = ₱{{ "%.2f"|format(addon.subtotal) }}
+                                                <br>
+                                            {% endfor %}
+
+                                            <strong>
+                                                Add-ons Total:
+                                                ₱{{ "%.2f"|format(addon_total.value) }}
+                                            </strong>
+                                        {% else %}
+                                            No add-ons
+                                        {% endif %}
+
+                                        {% if item.product_name in [
+                                            'Plain Noodles',
+                                            'Fried Noodles with 2 pcs Crab Stick',
+                                            'Fried Noodles with 3 pcs Shanghai',
+                                            'Fried Noodles with 3 pcs Siomai',
+                                            'Fried Noodles with Egg',
+                                            'Styro Plain Fried Noodles',
+                                            'Styro Fried Noodles with 3 pcs Siomai',
+                                            'Styro Fried Noodles with 3 pcs Shanghai',
+                                            'Styro Fried Noodles with Egg and Siomai',
+                                            'Styro Fried Noodles with Siomai, Shanghai and Egg',
+                                            'Plain Chaopan',
+                                            'Chaopan with Egg',
+                                            'Chaopan with 3 pcs Shanghai',
+                                            'Chaopan with 3 pcs Siomai',
+                                            'Chaopan with TJ',
+                                            'Chaopan with Ham',
+                                            'Chaopan with Patty',
+                                            'Chaopan with TJ and 3 pcs Siomai',
+                                            'Styro Chaopan with Egg, Siomai and Ham',
+                                            'Styro Chaopan with Egg, Siomai and Shanghai',
+                                            'Styro Chaopan with TJ, Shanghai and Patty'
+                                        ] %}
+                                            <br>
+                                            <a href="{{ url_for(
+                                                'add_order_addons',
+                                                variant_id=item.variant_id
+                                            ) }}">
+                                                Manage Add-ons
+                                            </a>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        ₱{{ "%.2f"|format(
+                                            item.subtotal + addon_total.value * item.quantity
+                                        ) }}
+                                    </td>
+
+                                    <td>
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('remove_order_item', variant_id=item.variant_id) }}"
+                                            onsubmit="return confirm('Remove this product from the order?');"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <button type="submit" class="delete-button">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="order-total">
+                    Total: ₱{{ "%.2f"|format(total_amount) }}
+                </h3>
+
+                <hr>
+
+                <section class="place-order-section">
+                    <h3>Save Order</h3>
+
+                    <p>
+                        Review your products and total amount before saving
+                        this order.
+                    </p>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('place_order') }}"
+                        onsubmit="return confirm('Are you sure you want to place this order?');"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button type="submit">
+                            Place Order
+                        </button>
+                    </form>
+                </section>
+
+            {% else %}
+                <div class="empty-cart">
+                    <p>No products added yet.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <footer>
+            <p>Cup of J's | Order Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Menu | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="menu-container">
+
+        <header class="page-header">
+            <h1>Cup of J's Menu</h1>
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('customer_dashboard') }}">Back to Dashboard</a>
+                |
+                <a href="{{ url_for('customer_cart') }}">View Cart</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if products %}
+
+            {% set current_category = namespace(name='') %}
+
+            {% for product in products %}
+
+                {% if current_category.name != product[0] %}
+
+                    {% if current_category.name != '' %}
+                        </tbody>
+                        </table>
+                        </div>
+                    </section>
+                    <hr>
+                    {% endif %}
+
+                    <section class="menu-category">
+
+                        <h2>{{ product[0] }}</h2>
+
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Description</th>
+                                        <th>Variant</th>
+                                        <th>Price</th>
+                                        <th>Quantity and Add-ons</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                    {% set current_category.name = product[0] %}
+
+                {% endif %}
+
+                <tr>
+                    <td>{{ product[2] }}</td>
+
+                    <td>
+                        {{ product[3] or "No description available." }}
+                    </td>
+
+                    <td>{{ product[5] }}</td>
+
+                    <td>
+                        ₱{{ "%.2f"|format(product[6]) }}
+                    </td>
+
+                    <td>
+
+                        {% if product[8] > 0 %}
+
+                            <form method="POST"
+                                  action="{{ url_for('customer_add_to_cart') }}">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="variant_id"
+                                    value="{{ product[4] }}"
+                                >
+
+                                <label>Quantity:</label>
+
+                                <input
+                                    type="number"
+                                    name="quantity"
+                                    min="1"
+                                    max="{{ product[8] }}"
+                                    value="1"
+                                    required
+                                >
+
+                                <p>
+                                    <strong>Available Stock:</strong>
+                                    {{ product[8] }}
+                                </p>
+
+                                {% set category_addons = addons_by_category.get(product[7], []) %}
+
+                                {% if category_addons %}
+
+                                    <p><strong>Available Add-ons:</strong></p>
+
+                                    {% for addon in category_addons %}
+
+                                        <div class="addon-option">
+
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    name="addon_ids"
+                                                    value="{{ addon.addon_id }}"
+                                                >
+
+                                                {{ addon.addon_name }}
+                                                (+₱{{ "%.2f"|format(addon.price) }})
+                                            </label>
+
+                                            <input
+                                                type="number"
+                                                name="addon_quantity_{{ addon.addon_id }}"
+                                                min="1"
+                                                value="1"
+                                                aria-label="Quantity for {{ addon.addon_name }}"
+                                            >
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <p>No add-ons available.</p>
+
+                                {% endif %}
+
+                                <button type="submit">
+                                    Add to Cart
+                                </button>
+
+                            </form>
+
+                        {% else %}
+
+                            <p><strong>Out of Stock</strong></p>
+
+                            <button type="button" disabled>
+                                Unavailable
+                            </button>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        <a href="{{ url_for('customer_cart') }}">
+                            View Cart
+                        </a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+                        </tbody>
+                        </table>
+                    </div>
+
+                </section>
+
+        {% else %}
+
+            <p>No available products at the moment.</p>
+
+        {% endif %}
+
+        <footer>
+            &copy; 2026 Cup of J's. All rights reserved.
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="admin-products">
+
+        <header class="page-header">
+            <h1>Manage Products</h1>
+
+            <p>Welcome, {{ session.get("full_name") }}!</p>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ url_for('add_product') }}">Add New Product</a>
+            </nav>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <hr>
+
+        <section class="product-list">
+            <h2>Product List</h2>
+
+            {% if products %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Availability</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for product in products %}
+                                <tr>
+                                    <td>{{ product[0] }}</td>
+                                    <td>{{ product[1] }}</td>
+                                    <td>{{ product[2] }}</td>
+                                    <td>{{ product[3] or "No description" }}</td>
+
+                                    <td>
+                                        {% if product[4] %}
+                                            <span class="availability available">
+                                                Available
+                                            </span>
+                                        {% else %}
+                                            <span class="availability unavailable">
+                                                Unavailable
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="action-buttons">
+                                        <a href="{{ url_for('edit_product', product_id=product[0]) }}">
+                                            Edit
+                                        </a>
+
+                                        <form
+                                            action="{{ url_for('delete_product', product_id=product[0]) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                        >
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="delete-button">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <p class="empty-orders">No products found.</p>
+
+            {% endif %}
+        </section>
+
+        <footer>
+            <p>Cup of J's | Product Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

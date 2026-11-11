@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Order | Cup of J's</title>
+</head>
+<body>
+
+    <h1>Review Order</h1>
+
+    <p>Welcome, {{ session.full_name }}!</p>
+
+    <p>
+        <a href="{{ url_for('add_order_items') }}">Back to Order Cart</a>
+    </p>
+
+    <hr>
+
+<hr>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+    <h2>Order Information</h2>
+
+    <p>
+        <strong>Order Type:</strong>
+        {{ order_draft.order_type.replace('_', ' ').title() }}
+    </p>
+
+    <p>
+        <strong>Fulfillment Method:</strong>
+        {{ order_draft.fulfillment_method.title() }}
+    </p>
+
+    <p>
+        <strong>Payment Method:</strong>
+        {{ order_draft.payment_method.upper() }}
+    </p>
+
+    <hr>
+
+    <h2>Order Items</h2>
+
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Variant</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Add-ons</th>
+                <th>Item Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in cart %}
+                {% set addon_total = namespace(value=0) %}
+
+                {% for addon in item.addons %}
+                    {% set addon_total.value = addon_total.value + addon.subtotal %}
+                {% endfor %}
+
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.variant_name }}</td>
+                    <td>{{ item.quantity }}</td>
+
+                    <td>
+                        ₱{{ "%.2f"|format(item.unit_price) }}
+                    </td>
+
+                    <td>
+                        {% if item.addons %}
+                            {% for addon in item.addons %}
+                                {{ addon.addon_name }}
+                                ({{ addon.quantity }} ×
+                                ₱{{ "%.2f"|format(addon.unit_price) }})
+                                <br>
+                            {% endfor %}
+                        {% else %}
+                            No add-ons
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        ₱{{ "%.2f"|format(
+                            item.subtotal +
+                            addon_total.value * item.quantity
+                        ) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>
+        Total Amount: ₱{{ "%.2f"|format(total_amount) }}
+    </h2>
+
+    <hr>
+
+    <p>
+        <strong>Note:</strong>
+        This is an order review only. The order has not yet been saved.
+    </p>
+
+   <p>
+    <a href="{{ url_for('add_order_items') }}">
+        Edit Order
+    </a>
+</p>
+
+<hr>
+
+<form method="POST" action="{{ url_for('place_order') }}">
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}"
+    >
+
+    <button type="submit">
+        Place Order
+    </button>
+</form>
+
+</body>
+</html>
