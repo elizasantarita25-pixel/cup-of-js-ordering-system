@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="orders-container">
+
+        <header class="page-header">
+            <h1>My Orders</h1>
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('customer_dashboard') }}">Dashboard</a>
+                |
+                <a href="{{ url_for('customer_menu') }}">Menu</a>
+                |
+                <a href="{{ url_for('customer_cart') }}">My Cart</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-history">
+            <h2>Order History and Tracking</h2>
+
+            {% if orders %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Date</th>
+                                <th>Order Type</th>
+                                <th>Fulfillment</th>
+                                <th>Total Amount</th>
+                                <th>Order Status</th>
+                                <th>Payment Method</th>
+                                <th>Payment Status</th>
+                                <th>Delivery Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order[0] }}</td>
+                                    <td>{{ order[1] }}</td>
+
+                                    <td>
+                                        {{ order[2]|replace("_", " ")|title }}
+                                    </td>
+
+                                    <td>{{ order[3]|title }}</td>
+
+                                    <td>
+                                        ₱{{ "%.2f"|format(order[4]|float) }}
+                                    </td>
+
+                                    <td>
+                                        {% set status = order[5]|lower %}
+
+                                        <span class="status-badge {{ status }}">
+                                            {{ status|replace("_", " ")|title }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ order[6]|upper if order[6] else "N/A" }}
+                                    </td>
+
+                                    <td>
+                                        {{ order[7]|replace("_", " ")|title if order[7] else "N/A" }}
+                                    </td>
+
+                                    <td>
+                                        {% if order[3] == "delivery" %}
+
+                                            {% set delivery_status = order[8]|lower if order[8] else "pending" %}
+
+                                            <span class="status-badge {{ delivery_status }}">
+                                                {{ delivery_status|replace("_", " ")|title }}
+                                            </span>
+
+                                        {% else %}
+
+                                            Not Applicable
+
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <a href="{{ url_for('customer_order_details', order_id=order[0]) }}">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <section class="empty-orders">
+                    <h3>No Orders Yet</h3>
+
+                    <p>You have no orders yet.</p>
+
+                    <a href="{{ url_for('customer_menu') }}">
+                        Browse Menu
+                    </a>
+                </section>
+
+            {% endif %}
+        </section>
+
+        <footer>
+            &copy; 2026 Cup of J's. All rights reserved.
+        </footer>
+
+    </main>
+
+</body>
+</html>

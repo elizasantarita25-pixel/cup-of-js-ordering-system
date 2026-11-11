@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="checkout-container">
+
+        <header class="page-header">
+            <h1>Checkout</h1>
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('customer_cart') }}">Back to Cart</a>
+                |
+                <a href="{{ url_for('customer_menu') }}">Menu</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-summary">
+            <h2>Order Summary</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in cart %}
+                            <tr>
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ item.variant_name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>
+                                    ₱{{ "%.2f"|format(item.subtotal|float) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="checkout-total-summary">
+
+                <p>
+                    Subtotal:
+                    <strong id="checkout_subtotal">
+                        ₱{{ "%.2f"|format(total_amount|float) }}
+                    </strong>
+                </p>
+
+                <p>
+                    Delivery Fee:
+                    <strong id="checkout_delivery_fee">₱0.00</strong>
+                </p>
+
+                <hr>
+
+                <h3>
+                    Grand Total:
+                    <strong id="checkout_grand_total">
+                        ₱{{ "%.2f"|format(total_amount|float) }}
+                    </strong>
+                </h3>
+
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="checkout-form-section">
+            <h2>Fulfillment Method</h2>
+
+            <form
+                method="POST"
+                action="{{ url_for('customer_place_order') }}"
+                enctype="multipart/form-data"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <div class="form-group">
+                    <label for="fulfillment_method">
+                        Choose Fulfillment:
+                    </label>
+
+                    <select
+                        name="fulfillment_method"
+                        id="fulfillment_method"
+                        required
+                    >
+                        <option value="pickup">Pickup</option>
+
+                        {% if delivery_locations %}
+                            <option value="delivery">Delivery</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                {% if delivery_locations %}
+
+                    <div id="delivery_information" class="delivery-information">
+
+                        <h3>Delivery Information</h3>
+
+                        <div class="form-group">
+                            <label for="location_id">
+                                Delivery Location:
+                            </label>
+
+                            <select name="location_id" id="location_id">
+
+                                <option value="" data-fee="0">
+                                    Select Location
+                                </option>
+
+                                {% for location in delivery_locations %}
+                                    <option
+                                        value="{{ location[0] }}"
+                                        data-fee="{{ location[2]|float }}"
+                                    >
+                                        {{ location[1] }} -
+                                        ₱{{ "%.2f"|format(location[2]|float) }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="delivery_address">
+                                Complete Delivery Address:
+                            </label>
+
+                            <textarea
+                                name="delivery_address"
+                                id="delivery_address"
+                                rows="3"
+                                placeholder="House number, street, and other address details"
+                            ></textarea>
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <p>Delivery is currently unavailable.</p>
+
+                {% endif %}
+
+                <hr>
+
+                <h2>Payment Method</h2>
+
+                <div class="form-group">
+                    <label for="payment_method">
+                        Choose Payment:
+                    </label>
+
+                    <select
+                        name="payment_method"
+                        id="payment_method"
+                        required
+                    >
+                        <option value="cash">Cash</option>
+                        <option value="gcash">GCash</option>
+                    </select>
+                </div>
+
+                <!-- GCASH PAYMENT SECTION -->
+                <div
+                    id="gcash_qr_section"
+                    style="display: none; margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 10px;"
+                >
+
+                    <h3>Pay using GCash</h3>
+
+                    <p>
+                        Scan the official Cup of J's GCash QR code
+                        using your GCash application.
+                    </p>
+
+                    <img
+                        src="{{ url_for('static', filename='css/images/gcash-qr.png') }}"
+                        alt="Cup of J's Official GCash QR Code"
+                        style="width: 100%; max-width: 300px; height: auto; display: block; margin: 15px auto;"
+                    >
+
+                    <p>
+                        <strong>Important:</strong>
+                        Check the recipient details and payment amount
+                        before completing your transaction.
+                    </p>
+
+                    <hr>
+
+                    <h3>GCash Payment Details</h3>
+
+                    <div class="form-group">
+                        <label for="gcash_reference_number">
+                            GCash Reference Number:
+                        </label>
+
+                        <input
+                            type="text"
+                            name="gcash_reference_number"
+                            id="gcash_reference_number"
+                            maxlength="100"
+                            placeholder="Enter your GCash reference number"
+                        >
+
+                        <small>
+                            Enter the reference number shown in your GCash receipt.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gcash_proof_image">
+                            Upload Proof of Payment:
+                        </label>
+
+                        <input
+                            type="file"
+                            name="gcash_proof_image"
+                            id="gcash_proof_image"
+                            accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                        >
+
+                        <small>
+                            Accepted formats: PNG, JPG, JPEG, WEBP.
+                            Maximum file size: 5 MB.
+                        </small>
+                    </div>
+
+                    <p>
+                        Your GCash payment will remain pending verification
+                        until the administrator checks the transaction.
+                    </p>
+
+                </div>
+
+                <button type="submit">Place Order</button>
+
+            </form>
+        </section>
+
+        <footer>
+            &copy; 2026 Cup of J's. All rights reserved.
+        </footer>
+
+    </main>
+
+    <script>
+        const fulfillmentSelect = document.getElementById(
+            "fulfillment_method"
+        );
+
+        const deliveryInformation = document.getElementById(
+            "delivery_information"
+        );
+
+        const locationSelect = document.getElementById(
+            "location_id"
+        );
+
+        const addressField = document.getElementById(
+            "delivery_address"
+        );
+
+        const paymentSelect = document.getElementById(
+            "payment_method"
+        );
+
+        const gcashQrSection = document.getElementById(
+            "gcash_qr_section"
+        );
+
+        const referenceField = document.getElementById(
+            "gcash_reference_number"
+        );
+
+        const proofField = document.getElementById(
+            "gcash_proof_image"
+        );
+
+        const subtotal = Number(
+            "{{ total_amount|float }}"
+        );
+
+        const deliveryFeeDisplay = document.getElementById(
+            "checkout_delivery_fee"
+        );
+
+        const grandTotalDisplay = document.getElementById(
+            "checkout_grand_total"
+        );
+
+        function formatCurrency(amount) {
+            return "₱" + amount.toFixed(2);
+        }
+
+        function updateCheckoutTotal() {
+
+            let deliveryFee = 0;
+
+            const isDelivery =
+                fulfillmentSelect.value === "delivery";
+
+            if (isDelivery && locationSelect) {
+
+                const selectedOption =
+                    locationSelect.options[
+                        locationSelect.selectedIndex
+                    ];
+
+                deliveryFee = Number(
+                    selectedOption.dataset.fee || 0
+                );
+            }
+
+            const grandTotal = subtotal + deliveryFee;
+
+            deliveryFeeDisplay.textContent =
+                formatCurrency(deliveryFee);
+
+            grandTotalDisplay.textContent =
+                formatCurrency(grandTotal);
+        }
+
+        function updateDeliveryFields() {
+
+            const isDelivery =
+                fulfillmentSelect.value === "delivery";
+
+            if (deliveryInformation) {
+
+                deliveryInformation.style.display =
+                    isDelivery ? "block" : "none";
+
+                locationSelect.required = isDelivery;
+                addressField.required = isDelivery;
+            }
+
+            updateCheckoutTotal();
+        }
+
+        function updatePaymentMethod() {
+
+            const isGcash =
+                paymentSelect.value === "gcash";
+
+            gcashQrSection.style.display =
+                isGcash ? "block" : "none";
+
+            referenceField.required = isGcash;
+            proofField.required = isGcash;
+
+            if (!isGcash) {
+                referenceField.value = "";
+                proofField.value = "";
+            }
+        }
+
+        // Validate uploaded receipt size before submission.
+        proofField.addEventListener("change", function () {
+
+            if (this.files.length > 0) {
+
+                const file = this.files[0];
+                const maximumSize = 5 * 1024 * 1024;
+
+                if (file.size > maximumSize) {
+
+                    alert("The uploaded receipt must not exceed 5 MB.");
+
+                    this.value = "";
+                }
+            }
+        });
+
+        fulfillmentSelect.addEventListener(
+            "change",
+            updateDeliveryFields
+        );
+
+        if (locationSelect) {
+
+            locationSelect.addEventListener(
+                "change",
+                updateCheckoutTotal
+            );
+        }
+
+        paymentSelect.addEventListener(
+            "change",
+            updatePaymentMethod
+        );
+
+        updateDeliveryFields();
+        updatePaymentMethod();
+    </script>
+
+</body>
+</html>

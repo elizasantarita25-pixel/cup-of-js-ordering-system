@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="sales-reports-page">
+
+        <header class="page-header">
+            <h1>Sales Reports</h1>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ url_for('admin_sales') }}">Sales Management</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="report-filter-section">
+            <h2>Filter Reports by Date</h2>
+
+            <form method="GET" action="{{ url_for('admin_reports') }}">
+
+                <div class="report-date-fields">
+
+                    <div class="form-group">
+                        <label for="start_date">Start Date:</label>
+                        <input
+                            type="date"
+                            id="start_date"
+                            name="start_date"
+                            value="{{ start_date }}"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_date">End Date:</label>
+                        <input
+                            type="date"
+                            id="end_date"
+                            name="end_date"
+                            value="{{ end_date }}"
+                        >
+                    </div>
+
+                </div>
+
+                <button type="submit">Generate Report</button>
+
+                <a class="clear-filter-link"
+                   href="{{ url_for('admin_reports') }}">
+                    Clear Filter
+                </a>
+
+            </form>
+        </section>
+
+        <hr>
+
+        <section class="report-summary-section">
+            <h2>Sales Summary</h2>
+
+            <div class="report-summary-cards">
+
+                <div class="report-summary-card">
+                    <h3>Total Transactions</h3>
+                    <p>{{ total_transactions }}</p>
+                </div>
+
+                <div class="report-summary-card">
+                    <h3>Total Recorded Sales</h3>
+                    <p>₱{{ "%.2f"|format(total_sales|float) }}</p>
+                </div>
+
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="best-selling-section">
+            <h2>Best-Selling Products</h2>
+
+            {% if best_selling_products %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product</th>
+                                <th>Variant</th>
+                                <th>Total Quantity Sold</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for product in best_selling_products %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ product[0] }}</td>
+                                    <td>{{ product[1] }}</td>
+                                    <td>{{ product[2] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <div class="empty-orders">
+                    <p>No product sales data available yet.</p>
+                </div>
+
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <section class="daily-sales-section">
+            <h2>Sales Breakdown by Date</h2>
+
+            {% if daily_sales %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Number of Transactions</th>
+                                <th>Total Sales</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for sale in daily_sales %}
+                                <tr>
+                                    <td>{{ sale[0] }}</td>
+                                    <td>{{ sale[1] }}</td>
+                                    <td>₱{{ "%.2f"|format(sale[2]|float) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <div class="empty-orders">
+                    <p>No sales records available yet.</p>
+                </div>
+
+            {% endif %}
+        </section>
+
+        <footer>
+            <p>Cup of J's | Sales Reports</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

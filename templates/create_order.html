@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Order | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="create-order-page">
+
+        <header class="page-header">
+            <h1>Create New Order</h1>
+
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('admin_orders') }}">Back to Orders</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="create-order-form-section">
+            <h2>Order Information</h2>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.order_type.label }}
+                    {{ form.order_type() }}
+
+                    {% for error in form.order_type.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.fulfillment_method.label }}
+                    {{ form.fulfillment_method() }}
+
+                    {% for error in form.fulfillment_method.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.payment_method.label }}
+                    {{ form.payment_method() }}
+
+                    {% for error in form.payment_method.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit() }}
+            </form>
+        </section>
+
+        {% if session.get("order_draft") %}
+            <section class="saved-order-section">
+                <h2>Saved Order Details</h2>
+
+                <p>
+                    <strong>Order Type:</strong>
+                    {{ session.order_draft.order_type|replace('_', ' ')|title }}
+                </p>
+
+                <p>
+                    <strong>Fulfillment:</strong>
+                    {{ session.order_draft.fulfillment_method|title }}
+                </p>
+
+                <p>
+                    <strong>Payment Method:</strong>
+                    {{ session.order_draft.payment_method|upper }}
+                </p>
+
+                <a class="primary-link" href="{{ url_for('add_order_items') }}">
+                    Add Products to Order
+                </a>
+            </section>
+        {% endif %}
+
+        <footer>
+            <p>Cup of J's | Order Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="admin-order-details-page">
+
+        <header class="page-header">
+            <h1>Order Details</h1>
+
+            <nav>
+                <a href="{{ url_for('admin_orders') }}">Back to Orders</a>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-information">
+            <h2>Order #{{ order[0] }}</h2>
+
+            <h3>Order Information</h3>
+
+            <p><strong>Customer:</strong> {{ order[1] }}</p>
+            <p><strong>Order Type:</strong> {{ order[2]|replace('_', ' ')|title }}</p>
+            <p><strong>Fulfillment:</strong> {{ order[3]|title }}</p>
+
+            <p>
+                <strong>Order Status:</strong>
+                <span class="status-badge {{ order[5] }}">
+                    {{ order[5]|replace('_', ' ')|title }}
+                </span>
+            </p>
+
+            <p><strong>Order Date:</strong> {{ order[6] }}</p>
+        </section>
+
+        <section class="payment-information">
+            <h3>Payment Information</h3>
+
+            <p>
+                <strong>Payment Method:</strong>
+                {{ order[7]|upper if order[7] else 'Not recorded' }}
+            </p>
+
+            <p>
+                <strong>Payment Status:</strong>
+                {{ order[8]|replace('_', ' ')|title if order[8] else 'Not recorded' }}
+            </p>
+
+            <p>
+                <strong>Total Amount:</strong>
+                ₱{{ "%.2f"|format(order[4]|float) }}
+            </p>
+
+            {% if order[7] == 'gcash' %}
+
+                <hr>
+
+                <h4>GCash Payment Verification</h4>
+
+                <p>
+                    <strong>GCash Reference Number:</strong>
+                    {{ order[9] or 'Not provided' }}
+                </p>
+
+                {% if order[10] %}
+
+                    <p>
+                        <strong>Proof of Payment:</strong>
+                        <a href="{{ url_for('view_gcash_proof', order_id=order[0]) }}"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            View GCash Receipt
+                        </a>
+                    </p>
+
+                {% else %}
+
+                    <p>No proof of payment uploaded.</p>
+
+                {% endif %}
+
+                {% if order[8] == 'pending_verification' %}
+                    <p>
+                        <strong>Reminder:</strong>
+                        Check the reference number and uploaded receipt
+                        against the actual GCash business transaction
+                        before verifying the payment.
+                    </p>
+                {% endif %}
+
+            {% endif %}
+        </section>
+
+        {% if order[3] == 'delivery' %}
+
+            <hr>
+
+            <section class="delivery-information">
+                <h3>Delivery Information</h3>
+
+                {% if delivery %}
+
+                    <p><strong>Delivery Location:</strong> {{ delivery[3] or 'N/A' }}</p>
+                    <p><strong>Delivery Address:</strong> {{ delivery[0] }}</p>
+                    <p><strong>Delivery Fee:</strong> ₱{{ "%.2f"|format(delivery[1]|float) }}</p>
+
+                    <p>
+                        <strong>Delivery Status:</strong>
+                        {{ delivery[2]|replace('_', ' ')|title }}
+                    </p>
+
+                {% else %}
+
+                    <p>No delivery record found for this order.</p>
+
+                {% endif %}
+
+                <p>
+                    <a href="{{ url_for('admin_deliveries') }}">
+                        Go to Manage Deliveries
+                    </a>
+                </p>
+            </section>
+
+        {% endif %}
+
+        <hr>
+
+        <section class="ordered-products">
+            <h3>Ordered Products</h3>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Product Subtotal</th>
+                            <th>Add-ons</th>
+                            <th>Item Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in items %}
+                            {% set addon_total = namespace(value=0) %}
+
+                            {% for addon in item.addons %}
+                                {% set addon_total.value = addon_total.value + (addon[1] * addon[2] * item.quantity) %}
+                            {% endfor %}
+
+                            <tr>
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ item.variant_name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₱{{ "%.2f"|format(item.unit_price) }}</td>
+                                <td>₱{{ "%.2f"|format(item.subtotal) }}</td>
+
+                                <td>
+                                    {% if item.addons %}
+                                        <ul>
+                                            {% for addon in item.addons %}
+                                                <li>
+                                                    {{ addon[0] }}
+                                                    ({{ addon[1] }} × ₱{{ "%.2f"|format(addon[2]) }})
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        No add-ons
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    ₱{{ "%.2f"|format(item.subtotal + addon_total.value) }}
+                                </td>
+                            </tr>
+
+                        {% else %}
+                            <tr>
+                                <td colspan="7">No products found for this order.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="order-total">
+                Order Total: ₱{{ "%.2f"|format(order[4]) }}
+            </h3>
+        </section>
+
+        <hr>
+
+        <section class="order-actions">
+            <h3>Order Actions</h3>
+
+            {% if order[5] == 'pending' and order[7] == 'cash' and order[8] == 'pending' %}
+
+                <p>Confirming this Cash order will deduct the ordered products from inventory.</p>
+
+                <form method="POST"
+                      action="{{ url_for('confirm_cash_order', order_id=order[0]) }}"
+                      onsubmit="return confirm('Confirm this Cash order and deduct its stock?');">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Confirm Cash Order</button>
+                </form>
+
+            {% elif order[5] == 'pending' and order[7] == 'gcash' and order[8] == 'pending_verification' %}
+
+                <p>Verify that the GCash payment has been received before confirming this order.</p>
+
+                <form method="POST"
+                      action="{{ url_for('verify_gcash_payment', order_id=order[0]) }}"
+                      onsubmit="return confirm('Have you verified that the GCash payment was received?');">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Verify GCash Payment</button>
+                </form>
+
+            {% elif order[3] == 'delivery' and order[5] in ['confirmed', 'preparing', 'ready'] %}
+
+                <p>Manage this order's status through the delivery management page.</p>
+
+                <a href="{{ url_for('admin_deliveries') }}">
+                    Manage Delivery
+                </a>
+
+            {% elif order[5] == 'confirmed' %}
+
+                <p>Order confirmed. Stock has been deducted.</p>
+
+                <form method="POST"
+                      action="{{ url_for('update_order_status', order_id=order[0], new_status='preparing') }}">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Start Preparing</button>
+                </form>
+
+            {% elif order[5] == 'preparing' %}
+
+                <p>Order is currently being prepared.</p>
+
+                <form method="POST"
+                      action="{{ url_for('update_order_status', order_id=order[0], new_status='ready') }}">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Mark as Ready</button>
+                </form>
+
+            {% elif order[5] == 'ready' %}
+
+                <p>Order is ready for pickup.</p>
+
+                <form method="POST"
+                      action="{{ url_for('update_order_status', order_id=order[0], new_status='completed') }}"
+                      onsubmit="return confirm('Mark this order as completed?');">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Complete Order</button>
+                </form>
+
+            {% elif order[5] == 'completed' %}
+
+                <p>Order completed. Sales record has been created.</p>
+
+            {% elif order[5] == 'cancelled' %}
+
+                <p>This order has been cancelled.</p>
+
+            {% endif %}
+        </section>
+
+        {% if order[5] not in ['completed', 'cancelled'] %}
+
+            <hr>
+
+            <section class="cancel-order-section">
+                <h3>Cancel Order</h3>
+
+                <p>Cancel this order if it will no longer be fulfilled.</p>
+
+                <form method="POST"
+                      action="{{ url_for('cancel_order', order_id=order[0]) }}"
+                      onsubmit="return confirm('Are you sure you want to cancel this order?');">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="delete-button">Cancel Order</button>
+                </form>
+            </section>
+
+        {% endif %}
+
+        <footer>
+            <p>Cup of J's | Order Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="verification-container">
+        <section class="verification-card">
+
+            <div class="brand">
+                <h1>Cup of J's</h1>
+                <p>Your favorite drinks and snacks, made with love.</p>
+            </div>
+
+            <h2>Verify Your Email</h2>
+            <p>A 6-digit verification code has been sent to:</p>
+
+            <p><strong>{{ email }}</strong></p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('verify_otp', email=email) }}">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="otp">Verification Code</label>
+
+                    <input
+                        type="text"
+                        id="otp"
+                        name="otp"
+                        minlength="6"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        placeholder="Enter 6-digit code"
+                        required
+                    >
+                </div>
+
+                <button type="submit">Verify Email</button>
+
+            </form>
+
+            <hr>
+
+            <form method="POST" action="{{ url_for('resend_otp') }}">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <input
+                    type="hidden"
+                    name="email"
+                    value="{{ email }}"
+                >
+
+                <button type="submit">Resend Verification Code</button>
+
+            </form>
+
+            <hr>
+
+            <p>
+                <a href="{{ url_for('register') }}">Back to Registration</a>
+            </p>
+
+            <footer>
+                &copy; 2026 Cup of J's. All rights reserved.
+            </footer>
+
+        </section>
+    </main>
+
+</body>
+</html>

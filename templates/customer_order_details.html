@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <main class="order-details-container">
+
+        <header class="page-header">
+            <h1>Order Details</h1>
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('customer_orders') }}">Back to My Orders</a>
+                |
+                <a href="{{ url_for('customer_menu') }}">Menu</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="order-information">
+            <h2>Order Information</h2>
+
+            <p><strong>Order ID:</strong> #{{ order[0] }}</p>
+            <p><strong>Order Date:</strong> {{ order[1] }}</p>
+            <p><strong>Order Type:</strong> {{ order[2]|replace("_", " ")|title }}</p>
+            <p><strong>Fulfillment:</strong> {{ order[3]|title }}</p>
+
+            <p>
+                <strong>Current Order Status:</strong>
+
+                <span class="status-badge {{ order[5]|lower }}">
+                    {{ order[5]|replace("_", " ")|title }}
+                </span>
+            </p>
+        </section>
+
+        <hr>
+
+        <section class="order-tracking">
+            <h2>Order Tracking</h2>
+
+            {% set current_status = order[5]|lower %}
+
+            {% if current_status == "cancelled" %}
+
+                <p class="status-badge cancelled">Order Cancelled</p>
+                <p>This order has been cancelled.</p>
+
+            {% elif order[3] == "delivery" %}
+
+                {% set delivery_stages = [
+                    "pending",
+                    "preparing",
+                    "out_for_delivery",
+                    "delivered"
+                ] %}
+
+                {% set delivery_status = order[11]|lower if order[11] else "pending" %}
+                {% set progress = namespace(current=-1) %}
+
+                {% for stage in delivery_stages %}
+                    {% if stage == delivery_status %}
+                        {% set progress.current = loop.index0 %}
+                    {% endif %}
+                {% endfor %}
+
+                <p>Follow the progress of your delivery below:</p>
+
+                {% if delivery_status == "cancelled" %}
+
+                    <p class="status-badge cancelled">Delivery Cancelled</p>
+                    <p>Your delivery has been cancelled. Please contact the store for assistance.</p>
+
+                {% else %}
+
+                    <ul class="tracking-list">
+                        {% for stage in delivery_stages %}
+                            <li class="{{ 'reached' if loop.index0 <= progress.current else '' }}">
+                                {% if loop.index0 <= progress.current %}
+                                    ✓
+                                {% else %}
+                                    ○
+                                {% endif %}
+
+                                {{ stage|replace("_", " ")|title }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                {% endif %}
+
+            {% else %}
+
+                {% set pickup_stages = [
+                    "pending",
+                    "confirmed",
+                    "preparing",
+                    "ready",
+                    "completed"
+                ] %}
+
+                {% set progress = namespace(current=-1) %}
+
+                {% for stage in pickup_stages %}
+                    {% if stage == current_status %}
+                        {% set progress.current = loop.index0 %}
+                    {% endif %}
+                {% endfor %}
+
+                <p>Follow the progress of your pickup order below:</p>
+
+                <ul class="tracking-list">
+                    {% for stage in pickup_stages %}
+                        <li class="{{ 'reached' if loop.index0 <= progress.current else '' }}">
+                            {% if loop.index0 <= progress.current %}
+                                ✓
+                            {% else %}
+                                ○
+                            {% endif %}
+
+                            {{ stage|title }}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <section class="ordered-products">
+            <h2>Ordered Products</h2>
+
+            {% if items %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Variant</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Add-ons</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in items %}
+                                <tr>
+                                    <td>{{ item[1] }}</td>
+                                    <td>{{ item[2] }}</td>
+                                    <td>{{ item[3] }}</td>
+
+                                    <td>
+                                        ₱{{ "%.2f"|format(item[4]|float) }}
+                                    </td>
+
+                                    <td>
+                                        {% set item_addons = addons_by_item.get(item[0], []) %}
+
+                                        {% if item_addons %}
+                                            <ul>
+                                                {% for addon in item_addons %}
+                                                    <li>
+                                                        {{ addon[0] }}
+                                                        ({{ addon[1] }}x)
+                                                        - ₱{{ "%.2f"|format(addon[2]|float) }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            None
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        ₱{{ "%.2f"|format(item[5]|float) }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <p>No order items found.</p>
+
+            {% endif %}
+        </section>
+
+        <hr>
+
+        <section class="payment-information">
+            <h2>Payment Information</h2>
+
+            <p>
+                <strong>Payment Method:</strong>
+                {{ order[6]|upper if order[6] else "N/A" }}
+            </p>
+
+            <p>
+                <strong>Payment Status:</strong>
+                {{ order[7]|replace("_", " ")|title if order[7] else "N/A" }}
+            </p>
+        </section>
+
+        {% if order[3] == "delivery" %}
+
+            <hr>
+
+            <section class="delivery-information">
+                <h2>Delivery Information</h2>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ order[10] or "N/A" }}
+                </p>
+
+                <p>
+                    <strong>Address:</strong>
+                    {{ order[8] or "N/A" }}
+                </p>
+
+                <p>
+                    <strong>Delivery Fee:</strong>
+                    ₱{{ "%.2f"|format(order[9]|float if order[9] is not none else 0) }}
+                </p>
+
+                <p>
+                    <strong>Delivery Status:</strong>
+
+                    {% if order[11] %}
+                        <span class="status-badge {{ order[11]|lower }}">
+                            {{ order[11]|replace("_", " ")|title }}
+                        </span>
+                    {% else %}
+                        <span class="status-badge pending">
+                            Awaiting Delivery Record
+                        </span>
+                    {% endif %}
+                </p>
+            </section>
+
+        {% endif %}
+
+        <hr>
+
+        <section class="order-total">
+            <h2>
+                Total Amount: ₱{{ "%.2f"|format(order[4]|float) }}
+            </h2>
+        </section>
+
+        <footer>
+            &copy; 2026 Cup of J's. All rights reserved.
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Inventory | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="inventory-form-page">
+
+        <header class="page-header">
+            <h1>Update Inventory</h1>
+
+            <nav>
+                <a href="{{ url_for('manage_inventory') }}">Back to Inventory</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="inventory-form-section">
+            <h2>Inventory Transaction</h2>
+
+            <form method="POST" action="{{ url_for('update_inventory') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.variant_id.label }}
+                    {{ form.variant_id() }}
+
+                    {% for error in form.variant_id.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.transaction_type.label }}
+                    {{ form.transaction_type() }}
+
+                    {% for error in form.transaction_type.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.quantity.label }}
+                    {{ form.quantity() }}
+
+                    {% for error in form.quantity.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.remarks.label }}
+                    {{ form.remarks(rows=4, cols=40, placeholder="Enter transaction remarks") }}
+
+                    {% for error in form.remarks.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit() }}
+            </form>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Inventory Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

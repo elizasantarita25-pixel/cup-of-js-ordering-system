@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Delivery Locations | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="delivery-locations-page">
+
+        <header class="page-header">
+            <h1>Manage Delivery Locations</h1>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
+                <a href="{{ url_for('admin_deliveries') }}">Manage Deliveries</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="delivery-location-form-section">
+            <h2>Add New Delivery Location</h2>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="location_name">Location Name:</label>
+                    <input
+                        type="text"
+                        id="location_name"
+                        name="location_name"
+                        maxlength="150"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="delivery_fee">Delivery Fee (₱):</label>
+                    <input
+                        type="number"
+                        id="delivery_fee"
+                        name="delivery_fee"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <button type="submit">Add Delivery Location</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section class="delivery-location-list-section">
+            <h2>Delivery Locations List</h2>
+
+            {% if locations %}
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Location Name</th>
+                                <th>Delivery Fee</th>
+                                <th>Status</th>
+                                <th>Update</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for location in locations %}
+                                <tr>
+                                    <td>{{ location[0] }}</td>
+                                    <td>{{ location[1] }}</td>
+                                    <td>₱{{ "%.2f"|format(location[2]|float) }}</td>
+
+                                    <td>
+                                        {% if location[3] == 1 %}
+                                            <span class="availability available">Active</span>
+                                        {% else %}
+                                            <span class="availability unavailable">Inactive</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="location-actions">
+
+                                        <form method="POST"
+                                              action="{{ url_for('update_delivery_location', location_id=location[0]) }}">
+
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <div class="form-group">
+                                                <label for="location_name_{{ location[0] }}">
+                                                    Location Name:
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    id="location_name_{{ location[0] }}"
+                                                    name="location_name"
+                                                    value="{{ location[1] }}"
+                                                    maxlength="150"
+                                                    required
+                                                >
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="delivery_fee_{{ location[0] }}">
+                                                    Delivery Fee (₱):
+                                                </label>
+
+                                                <input
+                                                    type="number"
+                                                    id="delivery_fee_{{ location[0] }}"
+                                                    name="delivery_fee"
+                                                    value="{{ location[2] }}"
+                                                    min="0"
+                                                    step="0.01"
+                                                    required
+                                                >
+                                            </div>
+
+                                            <button type="submit">Save Changes</button>
+                                        </form>
+
+                                        <form method="POST"
+                                              action="{{ url_for('toggle_delivery_location', location_id=location[0]) }}">
+
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            {% if location[3] == 1 %}
+                                                <button type="submit" class="delete-button">
+                                                    Deactivate
+                                                </button>
+                                            {% else %}
+                                                <button type="submit">
+                                                    Activate
+                                                </button>
+                                            {% endif %}
+                                        </form>
+
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <div class="empty-orders">
+                    <p>No delivery locations found.</p>
+                </div>
+
+            {% endif %}
+        </section>
+
+        <footer>
+            <p>Cup of J's | Delivery Location Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

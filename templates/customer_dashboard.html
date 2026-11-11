@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cup of J's | Customer Home</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="customer-dashboard-body">
+
+    <header class="customer-topbar">
+        <a href="{{ url_for('customer_dashboard') }}" class="customer-brand">
+            <span class="brand-mark">CJ.</span>
+            <span class="brand-name">
+                <strong>Cup of J's</strong>
+                <small>DRINKS & SNACKS</small>
+            </span>
+        </a>
+
+        <nav class="customer-topnav">
+            <a href="{{ url_for('customer_dashboard') }}" class="active">Home</a>
+            <a href="{{ url_for('customer_menu') }}">Menu</a>
+            <a href="{{ url_for('customer_cart') }}">My Cart</a>
+            <a href="{{ url_for('customer_orders') }}">My Orders</a>
+            <a href="{{ url_for('customer_profile') }}">My Profile</a>
+        </nav>
+
+        <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="logout-button">Log Out</button>
+        </form>
+    </header>
+
+    <main class="customer-dashboard-main">
+
+        <section class="customer-hero">
+            <div class="hero-content">
+                <span class="hero-label">YOUR EVERYDAY FAVORITE STOP</span>
+
+                <h1>A little treat can make your day <span>better.</span></h1>
+
+                <p>
+                    From refreshing drinks to satisfying snacks,
+                    find something you'll love at Cup of J's.
+                </p>
+
+                <a href="{{ url_for('customer_menu') }}" class="hero-button">
+                    Explore Our Menu <span>→</span>
+                </a>
+
+                <div class="hero-note">
+                    <span class="hero-note-line"></span>
+                    GOOD FOOD. GREAT DRINKS. HAPPY MOMENTS.
+                </div>
+            </div>
+
+            <div class="hero-art">
+                <div class="hero-art-circle"></div>
+                <div class="hero-art-card">
+                    <span class="art-small-label">A MOMENT FOR YOU</span>
+                    <div class="art-monogram">CJ</div>
+                    <span class="art-divider"></span>
+                    <strong>Made to<br>brighten<br>your day.</strong>
+                    <span class="art-bottom">CUP OF J'S · EST. 2026</span>
+                </div>
+                <span class="hero-art-caption">YOUR DAILY LITTLE HAPPINESS</span>
+            </div>
+        </section>
+
+        <section class="customer-greeting">
+            <div>
+                <span class="section-eyebrow">CUSTOMER HOME</span>
+                <h2>Welcome back, {{ full_name }}!</h2>
+                <p>Ready to find your next favorite?</p>
+            </div>
+
+            <div class="customer-account-badge">
+                <span class="account-dot"></span>
+                CUSTOMER ACCOUNT
+            </div>
+        </section>
+
+        <section class="customer-quick-links">
+            <div class="customer-section-heading">
+                <div>
+                    <span class="section-eyebrow">YOUR CUP OF J'S</span>
+                    <h2>Where would you like to go?</h2>
+                </div>
+                <span class="heading-side-note">YOUR ORDERING SHORTCUTS</span>
+            </div>
+
+            <div class="customer-action-grid">
+
+                <a href="{{ url_for('customer_menu') }}" class="customer-action-card menu-card">
+                    <div class="action-card-top">
+                        <span class="action-icon">01</span>
+                        <span class="action-arrow">↗</span>
+                    </div>
+                    <div class="action-card-bottom">
+                        <span class="action-category">EXPLORE</span>
+                        <h3>Browse Menu</h3>
+                        <p>Discover drinks and snacks made for you.</p>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('customer_cart') }}" class="customer-action-card cart-card">
+                    <div class="action-card-top">
+                        <span class="action-icon">02</span>
+                        <span class="action-arrow">↗</span>
+                    </div>
+                    <div class="action-card-bottom">
+                        <span class="action-category">YOUR SELECTION</span>
+                        <h3>My Cart</h3>
+                        <p>Review the items you want to order.</p>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('customer_orders') }}" class="customer-action-card orders-card">
+                    <div class="action-card-top">
+                        <span class="action-icon">03</span>
+                        <span class="action-arrow">↗</span>
+                    </div>
+                    <div class="action-card-bottom">
+                        <span class="action-category">ORDER UPDATES</span>
+                        <h3>My Orders</h3>
+                        <p>Keep track of your orders and their status.</p>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('customer_profile') }}" class="customer-action-card profile-card">
+                    <div class="action-card-top">
+                        <span class="action-icon">04</span>
+                        <span class="action-arrow">↗</span>
+                    </div>
+                    <div class="action-card-bottom">
+                        <span class="action-category">YOUR ACCOUNT</span>
+                        <h3>My Profile</h3>
+                        <p>View and update your account information.</p>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <section class="customer-account-panel">
+            <div class="account-panel-heading">
+                <div>
+                    <span class="section-eyebrow">ACCOUNT DETAILS</span>
+                    <h2>Your Information</h2>
+                </div>
+                <a href="{{ url_for('customer_profile') }}">Manage Profile ↗</a>
+            </div>
+
+            <div class="account-details-grid">
+                <div class="account-detail">
+                    <span>FULL NAME</span>
+                    <strong>{{ full_name }}</strong>
+                </div>
+
+                <div class="account-detail">
+                    <span>USERNAME</span>
+                    <strong>{{ username }}</strong>
+                </div>
+
+                <div class="account-detail">
+                    <span>ACCOUNT ROLE</span>
+                    <strong>{{ role|title }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <footer class="customer-footer">
+            <div>
+                <strong>Cup of J's.</strong>
+                <p>Good food. Great drinks. Happy moments.</p>
+            </div>
+            <small>© 2026 Cup of J's. All rights reserved.</small>
+        </footer>
+
+    </main>
+
+</body>
+</html>

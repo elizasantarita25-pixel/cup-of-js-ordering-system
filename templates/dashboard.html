@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="brand">
+            <h1>Cup of J's</h1>
+        </div>
+
+        <div class="user-info">
+    <span>{{ full_name }}</span>
+    <span class="role">{{ role|capitalize }}</span>
+
+    <form method="POST" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="logout-button">Log Out</button>
+    </form>
+</div>
+    </header>
+
+    <main class="dashboard-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="welcome-section">
+            <p class="eyebrow">CUP OF J'S ORDERING SYSTEM</p>
+            <h2>Welcome, {{ full_name }}!</h2>
+            <p>You are now logged in to your account.</p>
+        </section>
+
+        <section class="dashboard-content">
+            <div class="welcome-card">
+                <div class="card-icon">☕</div>
+                <h3>Welcome to Cup of J's</h3>
+                <p>
+                    Enjoy your favorite drinks and snacks.
+                    We're happy to have you here!
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

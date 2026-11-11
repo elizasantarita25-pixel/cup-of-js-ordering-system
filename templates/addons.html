@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Add-ons | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="addons-page">
+
+        <header class="page-header">
+            <h1>Manage Add-ons</h1>
+
+            <p>Welcome, {{ session.full_name }}!</p>
+
+            <nav>
+                <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ url_for('add_addon') }}">Add New Add-on</a>
+            </nav>
+        </header>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="addons-list-section">
+            <h2>Add-ons List</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Add-on ID</th>
+                            <th>Add-on Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Availability</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for addon in addons %}
+                            <tr>
+                                <td>{{ addon[0] }}</td>
+                                <td>{{ addon[1] }}</td>
+                                <td>{{ addon[2] }}</td>
+                                <td>₱{{ "%.2f"|format(addon[3]) }}</td>
+
+                                <td>
+                                    {% if addon[4] %}
+                                        <span class="availability available">Available</span>
+                                    {% else %}
+                                        <span class="availability unavailable">Unavailable</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="action-buttons">
+                                    <a href="{{ url_for('edit_addon', addon_id=addon[0]) }}">
+                                        Edit
+                                    </a>
+
+                                    <form
+                                        action="{{ url_for('delete_addon', addon_id=addon[0]) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this add-on?');"
+                                    >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="delete-button">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                        {% else %}
+                            <tr>
+                                <td colspan="6">No add-ons found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p>Cup of J's | Add-on Management</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Cup of J's</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+
+<body>
+    <main class="login-container">
+        <section class="login-card">
+
+            <div class="brand">
+                <h1>Cup of J's</h1>
+                <p>Your favorite drinks and snacks, made with love.</p>
+            </div>
+
+            <div class="form-heading">
+                <h2>Welcome Back!</h2>
+                <p>Log in to continue to your account.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.username.label }}
+                    {{ form.username(
+                        class="form-control",
+                        placeholder="Enter your username or email"
+                    ) }}
+
+                    {% for error in form.username.errors %}
+                        <small class="error-message">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(
+                        class="form-control",
+                        placeholder="Enter your password"
+                    ) }}
+
+                    {% for error in form.password.errors %}
+                        <small class="error-message">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class="submit-button") }}
+            </form>
+
+            <p>
+                <a href="{{ url_for('forgot_password') }}">
+                    Forgot Password?
+                </a>
+            </p>
+
+            <div class="register-link">
+                <p>
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}">Create Account</a>
+                </p>
+            </div>
+
+            <footer>
+                &copy; 2026 Cup of J's. All rights reserved.
+            </footer>
+
+        </section>
+    </main>
+</body>
+</html>
