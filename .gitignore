@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Cup of J's private files
+.env.*
+!.env.example
+uploads/
+gcash_proofs/
+*.sql
